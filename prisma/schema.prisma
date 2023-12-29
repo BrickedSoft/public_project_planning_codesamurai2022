@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model UserType {
+  id          String @id @default(uuid())
+  users       User[]
+  code        String @unique
+  committee   String
+  description String
+}
+
+model Agency {
+  id    String @id @default(uuid())
+  users User[]
+
+  code            String            @unique
+  name            String
+  type            String
+  description     String
+  ProjectProposal ProjectProposal[]
+}
+
+model User {
+  id               String            @id @default(uuid())
+  userTypeId       String
+  userType         UserType          @relation(fields: [userTypeId], references: [id])
+  agency           Agency            @relation(fields: [agencyId], references: [id])
+  agencyId         String
+  projectProposals ProjectProposal[]
+}
+
+model ProjectProposal {
+  id           String   @id @default(uuid())
+  project      Project?
+  user         User?    @relation(fields: [userId], references: [id])
+  userId       String
+  execAgency   Agency   @relation(fields: [execAgencyId], references: [id])
+  execAgencyId String
+
+  assignedId   String
+  name         String
+  location     String
+  latitude     Float
+  longitude    Float
+  cost         Float
+  timespan     Float
+  goal         String
+  proposalDate DateTime
+}
+
+model Project {
+  id                String          @id @default(uuid())
+  projectProposal   ProjectProposal @relation(fields: [projectProposalId], references: [id])
+  projectProposalId String          @unique
+
+  ProjectComponents ProjectComponent[]
+}
+
+model ProjectComponent {
+  id         String             @id @default(uuid())
+  project    Project            @relation(fields: [projectId], references: [id])
+  projectId  String
+  parentId   String
+  ancestor   ProjectComponent?  @relation("ParentChild", fields: [parentId], references: [id])
+  decendents ProjectComponent[] @relation("ParentChild")
+
+  assignedId String
+  type       String
+  completion Float
+  actualCost Float
+  startDate  DateTime
+}
