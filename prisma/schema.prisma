@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// datasource db {
+//   provider = "postgresql"
+//   url = env("DATABASE_URL")
+// }
+
 model UserType {
   id          String @id @default(uuid())
   users       User[]
@@ -19,11 +24,19 @@ model Agency {
   id    String @id @default(uuid())
   users User[]
 
-  code            String            @unique
-  name            String
-  type            String
-  description     String
-  ProjectProposal ProjectProposal[]
+  code             String             @unique
+  name             String
+  type             String
+  description      String
+  ProjectProposal  ProjectProposal[]
+}
+
+model Constaints {
+  id String @id @default(uuid())
+
+  code           String
+  maxLimit       Int
+  constraintType String
 }
 
 model User {
@@ -39,11 +52,13 @@ model ProjectProposal {
   id           String   @id @default(uuid())
   project      Project?
   user         User?    @relation(fields: [userId], references: [id])
-  userId       String
+  userId       String?
   execAgency   Agency   @relation(fields: [execAgencyId], references: [id])
   execAgencyId String
+  ProjectProposalComponents ProjectProposalComponent[]
 
-  assignedId   String
+
+  assignedId   String   @unique
   name         String
   location     String
   latitude     Float
@@ -55,24 +70,24 @@ model ProjectProposal {
 }
 
 model Project {
-  id                String          @id @default(uuid())
-  projectProposal   ProjectProposal @relation(fields: [projectProposalId], references: [id])
-  projectProposalId String          @unique
+  id                String             @id @default(uuid())
+  projectProposal   ProjectProposal    @relation(fields: [projectProposalId], references: [id])
+  projectProposalId String             @unique
 
-  ProjectComponents ProjectComponent[]
-}
-
-model ProjectComponent {
-  id         String             @id @default(uuid())
-  project    Project            @relation(fields: [projectId], references: [id])
-  projectId  String
-  parentId   String
-  ancestor   ProjectComponent?  @relation("ParentChild", fields: [parentId], references: [id])
-  decendents ProjectComponent[] @relation("ParentChild")
-
-  assignedId String
-  type       String
+  startDate  DateTime
   completion Float
   actualCost Float
-  startDate  DateTime
+}
+
+model ProjectProposalComponent {
+  id         String             @id @default(uuid())
+  projectProposal    ProjectProposal            @relation(fields: [projectProposalId], references: [id])
+  projectProposalId  String
+  ancestorId   String?
+  ancestor   ProjectProposalComponent?  @relation("ParentChild", fields: [ancestorId], references: [id])
+  decendents ProjectProposalComponent[] @relation("ParentChild")
+
+  assignedId  String
+  type        String
+  budgetRatio Float
 }
